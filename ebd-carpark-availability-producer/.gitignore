@@ -1,0 +1,10 @@
+.DS_Store
+.vscode
+config/*
+__debug_bin
+.deploy
+!config/config.toml
+bindata.go
+bin/*
+.serverless/
+*.csv

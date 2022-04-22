@@ -1,0 +1,13 @@
+.DS_Store
+.vscode
+config/*
+reports/
+__debug_bin
+.deploy
+.serverless/*
+bin/*
+!config/config.toml
+!config/commands.json
+!config/test.toml
+!config/remote.*.json
+!config/serverless.*.yml

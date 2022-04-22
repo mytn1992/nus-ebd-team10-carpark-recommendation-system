@@ -1,0 +1,80 @@
+service: ebd-carpark-producer
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  region: ap-southeast-1
+  runtime: go1.x
+  stage: ${opt:stage, 'dev'}
+  lambdaHashingVersion: 20201221 
+  environment:
+    ENV: ${self:provider.stage}
+  iam:
+    role: 
+      statements: ${file(./serverless.${self:provider.stage}.yml):iam_permissions}
+
+package:
+  individually: true
+  patterns:
+    - '!./**'
+
+functions:
+  # ebd-carpark-availability-producer:
+  #   package:
+  #     patterns:
+  #       - bin/main
+  #   handler: bin/main
+  #   description: ebd carpark availabilty batch dataset every hour
+  #   timeout: 60
+  #   memorySize: 1024
+  #   events:
+  #     - schedule: 
+  #         rate: cron(0 * ? * * *)
+  # ebd-carpark-info-producer:
+  #   package:
+  #     patterns:
+  #       - bin/carpark_information
+  #   handler: bin/carpark_information
+  #   description: ebd carpark availabilty batch dataset every minute
+  #   timeout: 120
+  #   memorySize: 128
+  #   events:
+  #     - schedule: 
+  #         rate: cron(0,30 * ? * * *)
+  ebd-weather-producer:
+    package:
+      patterns:
+        - bin/weather
+    handler: bin/weather
+    description: ebd weather batch dataset every hour
+    timeout: 30
+    memorySize: 128
+    events:
+      - schedule: 
+          rate: cron(0,30 * ? * * *)
+  ebd-hourly-extract:
+    package:
+      patterns:
+        - bin/extract
+    handler: bin/extract
+    description: ebd extract dataset from es to s3 every hour
+    timeout: 120
+    memorySize: 1024
+    events:
+      - schedule: 
+          rate: cron(0 * ? * * *)
+  ebd-hourly-process:
+    package:
+      patterns:
+        - bin/process
+    handler: bin/process
+    description: ebd process dataset from s3 and push to s3 every hour
+    timeout: 120
+    memorySize: 1024
+    events:
+      - s3:
+          bucket: ebd-demo
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: prediction/
+            - suffix: .csv
